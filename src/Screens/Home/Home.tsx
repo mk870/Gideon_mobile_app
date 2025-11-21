@@ -5,7 +5,7 @@ import { Text, View } from 'react-native'
 const Home:INoPropsReactComponent = () => {
   return (
     <View>
-      <Text>Home2</Text>
+      <Text>Hometyu</Text>
     </View>
   )
 }
