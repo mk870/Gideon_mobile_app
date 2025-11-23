@@ -3,7 +3,7 @@ const black = "black";
 
 const Colors = {
   red: "#FF2700",
-  primary: "#4D09CD",
+  primary: "#2226f1ff",
   white: "aliceblue",
   pureWhite: "#fff",
   lightPrimary: "#d1c0e3",

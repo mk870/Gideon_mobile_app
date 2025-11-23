@@ -45,15 +45,15 @@ const Index: INoPropsReactComponent = () => {
                       console.log(error.response?.data?.error);
                     } else console.log("Something went wrong", error);
                   })
-                  .finally(() => router.replace("/home"));
+                  .finally(() => router.replace("/voice"));
               } else {
                 dispatch(addAccessToken(value));
-                router.replace("/home");
+                router.replace("/voice");
               }
             } else router.replace("/login");
           }
         } else {
-          router.replace("/home");
+          router.replace("/voice");
         }
       })
       .catch((e) => {

@@ -1,10 +1,6 @@
-import { Animated } from "react-native";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import {
-  Ionicons,
-  MaterialIcons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Animated } from "react-native";
 
 import { tabsMenu } from "@/src/Utils/Constants";
 
@@ -16,49 +12,31 @@ type Props = {
 
 const TabsIcons: React.FC<Props> = ({ focused, name, color }) => {
   const iconSize = 24;
+  const focusedIconSize = 30
   const icons = () => {
-    if (name === tabsMenu.home) {
-      if (focused)
-        return <Ionicons name="home-sharp" color={color} size={iconSize} />;
-      else
-        return <Ionicons name="home-outline" size={iconSize} color={color} />;
-    } else if (name === tabsMenu.favorites) {
-      if (focused)
-        return <MaterialIcons name="favorite" size={iconSize} color={color} />;
-      else
-        return (
-          <MaterialIcons
-            name="favorite-outline"
-            size={iconSize}
-            color={color}
-          />
-        );
-    } else if (name === tabsMenu.account) {
+    if (name === tabsMenu.voice) {
       if (focused)
         return (
-          <MaterialCommunityIcons
-            name="account-circle"
-            size={iconSize}
-            color={color}
-          />
+          <MaterialIcons name="keyboard-voice" color={color} size={focusedIconSize} />
         );
       else
         return (
-          <MaterialCommunityIcons
-            name="account-circle-outline"
-            size={iconSize}
-            color={color}
-          />
+          <MaterialIcons name="keyboard-voice" color={color} size={iconSize} />
+        );
+    } else if (name === tabsMenu.settings) {
+      if (focused)
+        return <Ionicons name="settings-sharp" size={focusedIconSize} color={color} />;
+      else
+        return (
+        <Ionicons name="settings-sharp" size={iconSize} color={color} />
         );
     } else if (name === tabsMenu.chats) {
       if (focused)
-        return <Ionicons name="chatbox" size={iconSize} color={color} />;
-      else return <Ionicons name="chatbox-outline" size={iconSize} color={color} />;
-    } else {
-      if (focused)
-        return <Ionicons name="add-circle" size={35} color={color} />;
+        return <Ionicons name="chatbox" size={focusedIconSize} color={color} />;
       else
-        return <Ionicons name="add-circle-outline" size={35} color={color} />;
+        return (
+          <Ionicons name="chatbox" size={iconSize} color={color} />
+        );
     }
   };
   return <Animated.View>{icons()}</Animated.View>;

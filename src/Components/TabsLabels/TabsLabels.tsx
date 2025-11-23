@@ -1,7 +1,7 @@
 import React from "react";
 import { Text } from "react-native";
 
-import { gray, primary } from "@/src/Theme/Colors";
+import { primary, white } from "@/src/Theme/Colors";
 import { family } from "@/src/Theme/Font";
 
 type Props = {
@@ -17,7 +17,7 @@ const TabsLabels: React.FC<Props> = ({ focused, textItem }) => {
         fontSize: 12,
         color: focused
             ? primary
-            : gray,
+            : white,
       }}
     >
       {textItem}

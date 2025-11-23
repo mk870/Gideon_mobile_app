@@ -1,3 +1,4 @@
+import { colorScheme } from "@/src/Theme/Colors";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -20,6 +21,6 @@ export default Screen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    //backgroundColor:"black"
+    backgroundColor: colorScheme.background
   },
 });

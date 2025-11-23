@@ -6,7 +6,7 @@ import Screen from "@/src/Components/ScreenWrapper/Screen";
 import TabsIcons from "@/src/Components/TabsIcons/TabsIcons";
 import TabsLabels from "@/src/Components/TabsLabels/TabsLabels";
 import StackWrapper from "@/src/HOCs/StackWrapper";
-import { colorScheme, gray, primary } from "@/src/Theme/Colors";
+import { colorScheme, primary, white } from "@/src/Theme/Colors";
 import { family, large } from "@/src/Theme/Font";
 import { tabsMenu } from "@/src/Utils/Constants";
 
@@ -31,26 +31,14 @@ const TabsLayout = () => {
             styles.tabStyles,
             {
               backgroundColor: colorScheme.background,
-              borderTopColor: colorScheme.darkGray,
+              borderTopColor: colorScheme.background,
             },
           ],
-          tabBarInactiveTintColor: gray,
+          tabBarInactiveTintColor: white,
           tabBarActiveTintColor: primary,
           tabBarLabelPosition: "below-icon",
         }}
       >
-        <Tabs.Screen
-          name="home"
-          options={{
-            title: tabsMenu.home,
-            tabBarIcon: ({ color, focused }) => (
-              <TabsIcons focused={focused} color={color} name={tabsMenu.home} />
-            ),
-            tabBarLabel: ({ focused }) => (
-              <TabsLabels focused={focused} textItem={tabsMenu.home} />
-            ),
-          }}
-        />
         <Tabs.Screen
           name="chats"
           options={{
@@ -62,9 +50,31 @@ const TabsLayout = () => {
                 name={tabsMenu.chats}
               />
             ),
-            tabBarLabel: ({ focused }) => (
-              <TabsLabels focused={focused} textItem={tabsMenu.chats} />
+            tabBarLabel: ({ focused }) =>
+              focused ? (
+                ""
+              ) : (
+                <TabsLabels focused={focused} textItem={tabsMenu.chats} />
+              ),
+          }}
+        />
+        <Tabs.Screen
+          name="voice"
+          options={{
+            title: tabsMenu.voice,
+            tabBarIcon: ({ color, focused }) => (
+              <TabsIcons
+                focused={focused}
+                color={color}
+                name={tabsMenu.voice}
+              />
             ),
+            tabBarLabel: ({ focused }) =>
+              focused ? (
+                ""
+              ) : (
+                <TabsLabels focused={focused} textItem={tabsMenu.voice} />
+              ),
           }}
         />
         <Tabs.Screen
@@ -78,7 +88,12 @@ const TabsLayout = () => {
                 name={tabsMenu.settings}
               />
             ),
-            tabBarLabel: "",
+            tabBarLabel: ({ focused }) =>
+              focused ? (
+                ""
+              ) : (
+                <TabsLabels focused={focused} textItem={tabsMenu.settings} />
+              ),
           }}
         />
       </Tabs>

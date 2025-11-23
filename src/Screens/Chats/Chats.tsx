@@ -1,12 +1,13 @@
+import ScreenPage from '@/src/Components/ScreenWrapper/ScreenPage'
 import { INoPropsReactComponent } from '@/src/GlobalTypes/Types'
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text } from 'react-native'
 
 const Chats:INoPropsReactComponent = () => {
   return (
-    <View>
+    <ScreenPage>
       <Text>Chats</Text>
-    </View>
+    </ScreenPage>
   )
 }
 

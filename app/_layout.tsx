@@ -1,4 +1,5 @@
 import { store } from "@/src/Redux/Store";
+import { colorScheme } from "@/src/Theme/Colors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
@@ -34,6 +35,12 @@ export default function RootLayout() {
           <Stack
             screenOptions={{
               headerShown: false,
+              contentStyle: {
+                backgroundColor: colorScheme.background,
+              },
+              headerStyle: {
+                backgroundColor: colorScheme.background,
+              },
             }}
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
