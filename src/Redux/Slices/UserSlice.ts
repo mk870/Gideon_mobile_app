@@ -1,4 +1,4 @@
-import { IUser } from "@/src/GlobalTypes/UserTypes";
+import { IUser } from "@/src/GlobalTypes/User";
 import { createSlice } from "@reduxjs/toolkit";
 
 const user: IUser = {
@@ -6,7 +6,12 @@ const user: IUser = {
   familyName: "",
   id: 0,
   accessToken: "",
-  role:"user",
+  email: "",
+  weight: "",
+  height: "",
+  contactNumber: "",
+  deviceCode: "",
+  location: null,
 };
 
 export const userSlice = createSlice({
@@ -38,7 +43,43 @@ export const userSlice = createSlice({
         ...state.value,
         accessToken: action.payload,
       };
-    }
+    },
+    addEmail: (state, action) => {
+      state.value = {
+        ...state.value,
+        email: action.payload,
+      };
+    },
+    addWeight: (state, action) => {
+      state.value = {
+        ...state.value,
+        weight: action.payload,
+      };
+    },
+    addHeight: (state, action) => {
+      state.value = {
+        ...state.value,
+        height: action.payload,
+      };
+    },
+    addContactNumber: (state, action) => {
+      state.value = {
+        ...state.value,
+        contactNumber: action.payload,
+      };
+    },
+    addLocation: (state, action) => {
+      state.value = {
+        ...state.value,
+        location: action.payload,
+      };
+    },
+    addDeviceCode: (state, action) => {
+      state.value = {
+        ...state.value,
+        deviceCode: action.payload,
+      };
+    },
   },
 });
 export const {
@@ -46,5 +87,11 @@ export const {
   addFamilyName,
   addUserId,
   addAccessToken,
+  addEmail,
+  addWeight,
+  addHeight,
+  addContactNumber,
+  addLocation,
+  addDeviceCode,
 } = userSlice.actions;
 export default userSlice.reducer;

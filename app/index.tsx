@@ -8,10 +8,11 @@ import { useEffect, useState } from "react";
 import Screen from "@/src/Components/ScreenWrapper/Screen";
 import ScreenSpinner from "@/src/Components/Spinners/ScreenSpinner";
 import { INoPropsReactComponent } from "@/src/GlobalTypes/Types";
-import { IUser } from "@/src/GlobalTypes/UserTypes";
+
+import { IUser } from "@/src/GlobalTypes/User";
 import useUpdateUser from "@/src/Hooks/useUpdateUser";
 import { useAppDispatch, useAppSelector } from "@/src/Redux/Hooks/Config";
-import { addAccessToken } from "@/src/Redux/Slices/UserSlice";
+import { addAccessToken, addDeviceCode } from "@/src/Redux/Slices/UserSlice";
 import { backEndUrl, expoSecureValueKeyNames } from "@/src/Utils/Constants";
 import { getSecureValue } from "@/src/Utils/Func";
 
@@ -22,43 +23,53 @@ const Index: INoPropsReactComponent = () => {
   const { accessToken } = useAppSelector((state) => state.user.value);
   useUpdateUser(userData);
 
-  useEffect(() => {
-    getSecureValue(expoSecureValueKeyNames.accessToken)
-      .then((value: string | null) => {
-        if (value) {
-          const decoded: JwtPayload = jwtDecode(value);
-          const currentDate = new Date();
-          if (decoded.exp) {
-            if (decoded.exp * 1000 > currentDate.getTime()) {
-              if (!accessToken) {
-                axios
-                  .get(`${backEndUrl}/users/email`, {
-                    headers: {
-                      Authorization: `Bearer ${JSON.parse(value)}`,
-                    },
-                  })
-                  .then((res) => {
-                    setUserData(res.data.response);
-                  })
-                  .catch((error) => {
-                    if (error.response?.data?.error !== "") {
-                      console.log(error.response?.data?.error);
-                    } else console.log("Something went wrong", error);
-                  })
-                  .finally(() => router.replace("/voice"));
-              } else {
-                dispatch(addAccessToken(value));
-                router.replace("/voice");
-              }
-            } else router.replace("/login");
+  const initialCheckAndBackendConnection = async () => {
+    const accessTokenValue = await getSecureValue(
+      expoSecureValueKeyNames.accessToken,
+    );
+    const deviceCodeValue = await getSecureValue(
+      expoSecureValueKeyNames.deviceCode,
+    );
+    if (deviceCodeValue) {
+      dispatch(addDeviceCode(deviceCodeValue));
+    } else {
+      router.replace("/login");
+    }
+    if (accessTokenValue) {
+      const decoded: JwtPayload = jwtDecode(accessTokenValue);
+      const currentDate = new Date();
+      if (decoded.exp) {
+        if (decoded.exp * 1000 > currentDate.getTime()) {
+          if (!accessToken) {
+            try {
+              const res = await axios.get(`${backEndUrl}/users/email`, {
+                headers: {
+                  Authorization: `Bearer ${JSON.parse(accessTokenValue)}`,
+                },
+              });
+              setUserData(res.data.response);
+            } catch (error: any) {
+              if (error.response?.data?.error !== "") {
+                console.log(error.response?.data?.error);
+              } else console.log("Something went wrong", error);
+            } finally {
+              router.replace("/voice");
+            }
+          } else {
+            dispatch(addAccessToken(accessTokenValue));
+            router.replace("/voice");
           }
         } else {
-          router.replace("/voice");
+          router.replace("/login");
         }
-      })
-      .catch((e) => {
-        console.log("error", e);
-      });
+      }
+    } else {
+      router.replace("/login");
+    }
+  };
+
+  useEffect(() => {
+    initialCheckAndBackendConnection();
   }, []);
 
   return (

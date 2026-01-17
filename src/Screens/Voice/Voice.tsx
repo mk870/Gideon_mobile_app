@@ -1,7 +1,6 @@
 import ScreenPage from "@/src/Components/ScreenWrapper/ScreenPage";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-import { NeonRing } from "./Components/VoiceSphere/VoiceSphere";
 
 const BRIGHT_CYAN = '#00F7FF';
 const DEEP_BLUE = '#0066FF';
@@ -10,7 +9,8 @@ const Voice = () => {
   const [isSpeaking, setIsSpeaking] = React.useState(false);
   return (
     <ScreenPage>
-    <NeonRing isSpeaking={true} />
+    {/* <NeonRing isSpeaking={true} /> */}
+    {/* <WakeWordDetection/> */}
     <TouchableOpacity
         style={[styles.button, isSpeaking && styles.buttonActive]}
         onPress={() => setIsSpeaking(!isSpeaking)}

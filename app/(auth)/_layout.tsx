@@ -45,6 +45,27 @@ const AuthStack = () => {
           animation: stackAnimation,
         }}
       />
+      <Stack.Screen
+        name="forgotPassword"
+        options={{
+          title: "Forgot Password",
+          animation: stackAnimation,
+        }}
+      />
+      <Stack.Screen
+        name="resetPassword/[id]"
+        options={{
+          title: "Reset Password",
+          animation: stackAnimation,
+        }}
+      />
+      <Stack.Screen
+        name="verification/[id]"
+        options={{
+          title: "Verification",
+          animation: stackAnimation,
+        }}
+      />
     </Stack>
   );
 };

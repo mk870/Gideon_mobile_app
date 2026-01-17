@@ -1,4 +1,4 @@
-export const activeOpacityOfTouchableOpacity = 0.7
+export const activeOpacityOfTouchableOpacity = 0.7;
 
 export const SCREEN_BREAK_POINT = 700;
 export const BUTTON_MAX_WIDTH = 400;
@@ -6,11 +6,14 @@ export const BUTTON_SIZE_SCREEN_BREAK_POINT = 500;
 export const MAX_INPUT_WIDTH = 600;
 
 export const expoSecureValueKeyNames = {
-  accessToken: "accessToken"
+  accessToken: "accessToken",
+  deviceCode: "deviceCode",
 };
 
 //export const backEndUrl = "https://backend-1fpy.onrender.com";
-export const backEndUrl = "http://192.168.56.195:8080";
+//export const backEndUrl = "http://192.168.56.195:8080";
+export const backEndUrl = "http://010.042.076.3:8080";
+export const socketUrl = "ws://010.042.076.3:8080";
 
 export const managerAccountUpdateMsg =
   "Remember, if you update your information, all your properties will also be updated, so make sure it is accurate.";
@@ -22,6 +25,5 @@ export const tabsMenu = {
   home: "Home",
   settings: "Settings",
   chats: "Chats",
-  voice:"voice"
-
+  voice: "voice",
 };

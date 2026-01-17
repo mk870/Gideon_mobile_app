@@ -21,6 +21,9 @@ export default Screen;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colorScheme.background
+    // borderWidth: 1,
+    // borderColor: "green",
+    //paddingTop: 100,
+    backgroundColor: colorScheme.background,
   },
 });

@@ -1,33 +1,25 @@
 import {
-  ColorSchemeName,
-  DimensionValue,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
-import React, { useState } from "react";
-import {
-  Fontisto,
+  EvilIcons,
   Feather,
+  FontAwesome5,
+  Fontisto,
   Ionicons,
   Octicons,
-  EvilIcons,
-  FontAwesome5,
 } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { DimensionValue, StyleSheet, TextInput, View } from "react-native";
 
-import { ContentType } from "./Types/Types";
-import { IVoidFunc } from "@/src/GlobalTypes/Types";
-import { dark, light, red } from "@/src/Theme/Colors";
-import ThemedText from "../ThemedText/ThemedText";
-import { useAppSelector } from "@/src/Redux/Hooks/Config";
+import { colorScheme, red } from "@/src/Theme/Colors";
 import Row from "../Row/Row";
+import ThemedText from "../ThemedText/ThemedText";
+import { ContentType } from "./Types/Types";
 
 type Props = {
   width: DimensionValue;
   height: DimensionValue;
   placeHolder: string;
   handleOnChangeText: (text: string) => void;
-  handleOnEnter?: IVoidFunc;
+  handleOnEnter?: () => void;
   textValue: string | undefined;
   contentType: ContentType;
   type: string;
@@ -58,7 +50,6 @@ const InputField: React.FC<Props> = ({
   const [ispassWordHidden, setIsPassWordHidden] = useState<boolean>(true);
   const iconSize = 20;
   const iconColor = "gray";
-  const theme = useAppSelector((state) => state.theme.value);
   const secureText = () => {
     if (type === "password") {
       if (ispassWordHidden) return true;
@@ -72,9 +63,9 @@ const InputField: React.FC<Props> = ({
   };
 
   return (
-    <View style={styles(width, height, theme).container}>
+    <View style={styles(width, height).container}>
       {label && (
-        <Row style={styles(width, height, theme).labelContainer}>
+        <Row style={styles(width, height).labelContainer}>
           <ThemedText type="regular">{label}</ThemedText>
           {isRequired && (
             <View style={{ marginTop: 5 }}>
@@ -83,13 +74,13 @@ const InputField: React.FC<Props> = ({
           )}
         </Row>
       )}
-      <View style={styles(width, height, theme).inputWrapper}>
+      <View style={styles(width, height).inputWrapper}>
         {type === "emailAddress" && (
           <Fontisto
             name="email"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
           />
         )}
         {type === "search" && (
@@ -97,7 +88,7 @@ const InputField: React.FC<Props> = ({
             name="search"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
             onPress={handleOnEnter}
           />
         )}
@@ -106,7 +97,7 @@ const InputField: React.FC<Props> = ({
             name="eye"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
             onPress={() => setIsPassWordHidden((value) => !value)}
           />
         )}
@@ -115,7 +106,7 @@ const InputField: React.FC<Props> = ({
             name="eye-off"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
             onPress={() => setIsPassWordHidden((value) => !value)}
           />
         )}
@@ -124,7 +115,7 @@ const InputField: React.FC<Props> = ({
             name="person-outline"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
           />
         )}
         {type === "familyName" && (
@@ -132,7 +123,7 @@ const InputField: React.FC<Props> = ({
             name="people-outline"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
           />
         )}
         {label === "Code" && (
@@ -140,7 +131,7 @@ const InputField: React.FC<Props> = ({
             name="verified"
             size={iconSize}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
           />
         )}
         {type === "location" && (
@@ -148,12 +139,12 @@ const InputField: React.FC<Props> = ({
             name="location"
             size={26}
             color={iconColor}
-            style={styles(width, height, theme).icon}
+            style={styles(width, height).icon}
           />
         )}
         <TextInput
           style={[
-            styles(width, height, theme, borderColor).input,
+            styles(width, height, borderColor).input,
             {
               paddingRight:
                 type === "location" ||
@@ -167,9 +158,7 @@ const InputField: React.FC<Props> = ({
                   : 10,
               backgroundColor: backgroundColor
                 ? backgroundColor
-                : theme === "light"
-                ? light.background
-                : dark.darkGray,
+                : colorScheme.background,
             },
           ]}
           value={textValue}
@@ -179,10 +168,10 @@ const InputField: React.FC<Props> = ({
           textContentType={contentType}
           placeholderTextColor={"gray"}
           keyboardType={keyboardAppearance()}
-          cursorColor={theme === "light" ? light.text : dark.text}
+          cursorColor={colorScheme.text}
           autoCorrect={false}
           enterKeyHint={"enter"}
-          keyboardAppearance={theme === "light" ? "light" : "dark"}
+          keyboardAppearance={"light"}
           secureTextEntry={secureText()}
           autoFocus={isFocused ? isFocused : false}
           onSubmitEditing={handleOnEnter}
@@ -197,8 +186,7 @@ export default InputField;
 const styles = (
   width: DimensionValue,
   height: DimensionValue,
-  theme: ColorSchemeName,
-  borderColor?: string
+  borderColor?: string,
 ) =>
   StyleSheet.create({
     container: {
@@ -232,12 +220,8 @@ const styles = (
       paddingLeft: 10,
       position: "relative",
       borderRadius: 7,
-      color: theme === "dark" ? dark.text : light.text,
-      borderColor: borderColor
-        ? borderColor
-        : theme === "dark"
-        ? dark.background
-        : light.background,
+      color: colorScheme.text,
+      borderColor: borderColor ? borderColor : colorScheme.background,
       borderWidth: 1,
     },
   });
