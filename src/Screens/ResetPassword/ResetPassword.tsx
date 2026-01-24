@@ -1,3 +1,8 @@
+import { useMutation } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, useWindowDimensions, View } from "react-native";
+
 import CustomButton from "@/src/Components/Buttons/Custom/CustomButton";
 import InputField from "@/src/Components/InputField/InputField";
 import MessageModal from "@/src/Components/Modals/MessageModal";
@@ -7,16 +12,17 @@ import { INoPropsReactComponent } from "@/src/GlobalTypes/Types";
 import { resetPasswordHttpFunc } from "@/src/HttpServices/Mutations/Auth/AuthHttpFuncs";
 import { gray, red } from "@/src/Theme/Colors";
 import {
-    BUTTON_MAX_WIDTH,
-    BUTTON_SIZE_SCREEN_BREAK_POINT,
-    MAX_INPUT_WIDTH,
-    SCREEN_BREAK_POINT,
+  BUTTON_MAX_WIDTH,
+  BUTTON_SIZE_SCREEN_BREAK_POINT,
+  expoSecureValueKeyNames,
+  MAX_INPUT_WIDTH,
+  SCREEN_BREAK_POINT,
 } from "@/src/Utils/Constants";
-import { passwordGuideLines, passwordValidator } from "@/src/Utils/Func";
-import { useMutation } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, useWindowDimensions, View } from "react-native";
+import {
+  passwordGuideLines,
+  passwordValidator,
+  saveSecureValue,
+} from "@/src/Utils/Func";
 import { styles } from "./Styles";
 
 const ResetPassword: INoPropsReactComponent = () => {
@@ -91,8 +97,10 @@ const ResetPassword: INoPropsReactComponent = () => {
     }
   };
 
-  const handlePasswordResetSuccessModalClose = () => {
+  const handlePasswordResetSuccessModalClose = async () => {
     setResetPassWordSuccess(false);
+    await saveSecureValue(expoSecureValueKeyNames.accessToken, "");
+    await saveSecureValue(expoSecureValueKeyNames.deviceCode, "");
     router.dismissAll();
     router.push(`/login`);
   };
@@ -131,6 +139,7 @@ const ResetPassword: INoPropsReactComponent = () => {
             type="password"
             label="Password"
             borderColor={isPasswordValidationError ? red : gray}
+            backgroundColor="transparent"
           />
           <InputField
             textValue={passwords.confirmPassword}
@@ -144,6 +153,7 @@ const ResetPassword: INoPropsReactComponent = () => {
             type="password"
             label="Confirm Password"
             borderColor={isPasswordValidationError ? red : gray}
+            backgroundColor="transparent"
           />
           {isPasswordConfirmationError && (
             <View style={styles.errorContainer}>

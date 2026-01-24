@@ -4,6 +4,7 @@ import {
   IUserLogin,
   IUserLoginResponse,
   IUserRegistration,
+  IUserRegistrationResponse,
   IUserResetPassword,
   IUserVerificationData,
 } from "@/src/GlobalTypes/User";
@@ -17,7 +18,7 @@ export const loginHttpFunc = (userLoginData: IUserLogin) => {
 };
 
 export const registerHttpFunc = (userRegistrationData: IUserRegistration) => {
-  return axios.post<{ response: string }>(
+  return axios.post<IUserRegistrationResponse>(
     authRoutes.registration,
     userRegistrationData,
   );

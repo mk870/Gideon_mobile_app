@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import { AxiosError, AxiosResponse } from "axios";
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -35,7 +36,6 @@ import {
   passwordValidator,
   saveSecureValue,
 } from "@/src/Utils/Func";
-import { AxiosError, AxiosResponse } from "axios";
 import { styles } from "./styles";
 
 const {

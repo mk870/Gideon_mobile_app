@@ -11,7 +11,7 @@ import StackScreen from "@/src/Components/ScreenWrapper/StackScreen";
 import ThemedText from "@/src/Components/ThemedText/ThemedText";
 import { INoPropsReactComponent } from "@/src/GlobalTypes/Types";
 import { createVerificationCodeForSecurityHttpFunc } from "@/src/HttpServices/Mutations/Auth/AuthHttpFuncs";
-import { red } from "@/src/Theme/Colors";
+import { gray, red } from "@/src/Theme/Colors";
 import {
   BUTTON_MAX_WIDTH,
   BUTTON_SIZE_SCREEN_BREAK_POINT,
@@ -97,7 +97,8 @@ const ForgotPassword: INoPropsReactComponent = () => {
               contentType="emailAddress"
               type="emailAddress"
               label="Email"
-              borderColor={isEmailValidationError ? red : undefined}
+              borderColor={isEmailValidationError ? red : gray}
+              backgroundColor="transparent"
             />
             {isEmailValidationError && (
               <View style={styles.errorContainer}>

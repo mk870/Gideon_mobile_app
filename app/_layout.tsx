@@ -1,12 +1,13 @@
-import { store } from "@/src/Redux/Store";
-import { colorScheme } from "@/src/Theme/Colors";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { Provider } from "react-redux";
+
+import { store } from "@/src/Redux/Store";
+import { colorScheme } from "@/src/Theme/Colors";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // export const unstable_settings = {
 //   anchor: "(tabs)",

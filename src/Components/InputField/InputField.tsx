@@ -142,6 +142,30 @@ const InputField: React.FC<Props> = ({
             style={styles(width, height).icon}
           />
         )}
+        {type === "telephoneNumber" && (
+          <Feather
+            name="phone"
+            size={iconSize}
+            color={iconColor}
+            style={styles(width, height).icon}
+          />
+        )}
+        {type === "weight" && (
+          <FontAwesome5
+            name="weight-hanging"
+            size={iconSize}
+            color={iconColor}
+            style={styles(width, height).icon}
+          />
+        )}
+        {type === "height" && (
+          <FontAwesome5
+            name="ruler-vertical"
+            size={iconSize}
+            color={iconColor}
+            style={styles(width, height).icon}
+          />
+        )}
         <TextInput
           style={[
             styles(width, height, borderColor).input,

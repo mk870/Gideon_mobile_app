@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { IUser } from "../GlobalTypes/User";
 import { useAppDispatch } from "../Redux/Hooks/Config";
 import {
+  addAccessToken,
   addContactNumber,
   addEmail,
   addFamilyName,
@@ -25,6 +26,7 @@ const useUpdateUser = (user: IUser | null) => {
       dispatch(addHeight(user.height));
       dispatch(addContactNumber(user.contactNumber));
       dispatch(addLocation(user.location));
+      dispatch(addAccessToken(user.accessToken));
     }
   }, [user]);
 };

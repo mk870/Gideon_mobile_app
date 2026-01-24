@@ -4,14 +4,6 @@ export type IUserLogin = {
   device: IDeviceUserLogin;
 };
 
-export type IDeviceUserLogin = {
-  name: string;
-  type: string;
-  modelName: string;
-  manufacturer: string;
-  osVersion: string;
-};
-
 export type IUserRegistration = {
   givenName: string;
   familyName: string;
@@ -20,6 +12,19 @@ export type IUserRegistration = {
   height: string;
   contactNumber: string;
   password: string;
+};
+
+export type IUserRegistrationResponse = {
+  userId: number;
+  message: string;
+};
+
+export type IDeviceUserLogin = {
+  name: string;
+  type: string;
+  modelName: string;
+  manufacturer: string;
+  osVersion: string;
 };
 
 export type IUserResetPassword = {
