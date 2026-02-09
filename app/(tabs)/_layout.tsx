@@ -1,16 +1,21 @@
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 import React from "react";
 import { StyleSheet } from "react-native";
 
+import HistoryBottomSheet from "@/src/Components/BottomSheets/History/HistoryBottomSheet";
 import Screen from "@/src/Components/ScreenWrapper/Screen";
 import TabsIcons from "@/src/Components/TabsIcons/TabsIcons";
 import TabsLabels from "@/src/Components/TabsLabels/TabsLabels";
+import { useBottomSheetsContext } from "@/src/Context/BottomSheetsContext";
 import StackWrapper from "@/src/HOCs/StackWrapper";
 import { colorScheme, primary, white } from "@/src/Theme/Colors";
 import { family, large } from "@/src/Theme/Font";
 import { tabsMenu } from "@/src/Utils/Constants";
 
 const TabsLayout = () => {
+  const segments = useSegments();
+  const isSettingsRoot = segments.length === 2;
+  const { isHistoryBottomSheetOpen } = useBottomSheetsContext();
   return (
     <Screen>
       <Tabs
@@ -81,6 +86,7 @@ const TabsLayout = () => {
           name="settings"
           options={{
             title: "Settings",
+            headerShown: isSettingsRoot,
             tabBarIcon: ({ color, focused }) => (
               <TabsIcons
                 focused={focused}
@@ -97,6 +103,7 @@ const TabsLayout = () => {
           }}
         />
       </Tabs>
+      {isHistoryBottomSheetOpen && <HistoryBottomSheet />}
     </Screen>
   );
 };

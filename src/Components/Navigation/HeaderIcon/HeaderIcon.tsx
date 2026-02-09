@@ -16,7 +16,7 @@ const HeaderIcon: React.FC<Props> = ({ onPressFunc, iconName, iconSize }) => {
     <TouchableOpacity style={iconContainer} onPress={onPressFunc}>
       <Ionicons
         name={iconName}
-        size={iconSize ? iconSize : 24}
+        size={iconSize ? iconSize : 22}
         color={colorScheme.text}
         style={icon}
       />
@@ -28,12 +28,14 @@ export default HeaderIcon;
 
 const styles = StyleSheet.create({
   iconContainer: {
-    width: 35,
-    height: 35,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignContent: "center",
     justifyContent: "center",
     display: "flex",
+    borderWidth: 1,
+    backgroundColor: colorScheme.lightBackGround,
   },
   icon: {
     alignSelf: "center",

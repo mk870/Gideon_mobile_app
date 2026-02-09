@@ -2,12 +2,12 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ScrollView,
   Text,
   TouchableOpacity,
   useWindowDimensions,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import CustomButton from "@/src/Components/Buttons/Custom/CustomButton";
 import InputField from "@/src/Components/InputField/InputField";
@@ -285,13 +285,15 @@ const Register: INoPropsReactComponent = () => {
   return (
     <Screen>
       <StackScreen>
-        <ScrollView
+        <KeyboardAwareScrollView
           style={container}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             alignItems: "center",
             justifyContent: "flex-start",
           }}
+          enableOnAndroid={true}
+          extraScrollHeight={20}
         >
           <View
             style={[
@@ -463,7 +465,7 @@ const Register: INoPropsReactComponent = () => {
             header="Email Sent!"
             type="success"
           />
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </StackScreen>
     </Screen>
   );

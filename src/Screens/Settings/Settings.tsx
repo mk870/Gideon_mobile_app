@@ -42,6 +42,10 @@ const Settings: INoPropsReactComponent = () => {
 
   const iconSize = 26;
   const iconColor = gray;
+  // console.log(
+  //   "🚀 ~ file: Settings.tsx:24 ~ Settings ~ accessToken:",
+  //   accessToken,
+  // );
 
   return (
     <Screen>

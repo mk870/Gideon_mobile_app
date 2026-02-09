@@ -12,8 +12,8 @@ export const expoSecureValueKeyNames = {
 
 //export const backEndUrl = "https://backend-1fpy.onrender.com";
 //export const backEndUrl = "http://192.168.56.195:8080";
-export const backEndUrl = "http://010.042.076.3:8080";
-export const socketUrl = "ws://010.042.076.3:8080";
+export const backEndUrl = "http://10.27.86.3:8080";
+export const socketUrl = "ws://10.27.86.3:8080";
 
 export const managerAccountUpdateMsg =
   "Remember, if you update your information, all your properties will also be updated, so make sure it is accurate.";

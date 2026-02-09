@@ -36,6 +36,7 @@ const Index: INoPropsReactComponent = () => {
       router.replace("/login");
     }
     if (accessTokenValue) {
+      dispatch(addAccessToken(accessTokenValue));
       const decoded: JwtPayload = jwtDecode(accessTokenValue);
       const currentDate = new Date();
       if (decoded.exp) {

@@ -15,43 +15,52 @@ const SettingsLayout = () => {
           color: colorScheme.text,
           fontFamily: family,
         },
+        headerStyle: {
+          backgroundColor: colorScheme.background,
+        },
+        headerTitleAlign: "center",
         headerLeft: () => (
           <HeaderIcon iconName="arrow-back" onPressFunc={() => route.back()} />
         ),
-        headerTransparent: true,
+        headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="settings/index" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="notifications"
-        options={{ headerTitle: "Notifications", headerTitleAlign: "center" }}
+        options={{
+          headerTitle: "Notifications",
+        }}
       />
       <Stack.Screen
         name="privacy"
         options={{
           headerTitle: "Security & Privacy",
-          headerTitleAlign: "center",
         }}
       />
       <Stack.Screen
         name="offline-messages"
         options={{
           headerTitle: "Offline Messages",
-          headerTitleAlign: "center",
+        }}
+      />
+      <Stack.Screen name="devices/index" options={{ headerTitle: "Devices" }} />
+      <Stack.Screen
+        name="history/index"
+        options={{
+          headerTitle: "History",
+          headerRight: () => (
+            <HeaderIcon iconName="menu-outline" onPressFunc={() => {}} />
+          ),
         }}
       />
       <Stack.Screen
-        name="settings/devices/index"
-        options={{ headerShown: false }}
+        name="contacts/index"
+        options={{ headerTitle: "Contacts" }}
       />
       <Stack.Screen
-        name="settings/history/index"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen name="contacts/index" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="settings/memories/index"
-        options={{ headerShown: false }}
+        name="memories/index"
+        options={{ headerTitle: "Memories" }}
       />
     </Stack>
   );
