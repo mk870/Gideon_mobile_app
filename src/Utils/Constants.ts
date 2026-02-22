@@ -10,10 +10,8 @@ export const expoSecureValueKeyNames = {
   deviceCode: "deviceCode",
 };
 
-//export const backEndUrl = "https://backend-1fpy.onrender.com";
-//export const backEndUrl = "http://192.168.56.195:8080";
-export const backEndUrl = "http://10.27.86.3:8080";
-export const socketUrl = "ws://10.27.86.3:8080/ws";
+export const backEndUrl = "";
+export const socketUrl = "";
 
 export const managerAccountUpdateMsg =
   "Remember, if you update your information, all your properties will also be updated, so make sure it is accurate.";

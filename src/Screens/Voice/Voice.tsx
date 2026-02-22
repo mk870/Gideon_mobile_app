@@ -3,7 +3,7 @@ import ScreenSpinner from "@/src/Components/Spinners/ScreenSpinner";
 import { useAppSelector } from "@/src/Redux/Hooks/Config";
 import { socketUrl } from "@/src/Utils/Constants";
 import React from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useVoiceSession } from "./Hooks/useVoiceSession";
 
 const BRIGHT_CYAN = "#00F7FF";
@@ -14,18 +14,18 @@ const Voice = () => {
     (state) => state.user.value,
   );
   const [isSpeaking, setIsSpeaking] = React.useState(false);
-  const host = Platform.OS === "android" ? "10.0.2.2" : "localhost";
   const cleanDeviceCode = decodeURIComponent(deviceCode).replace(/^"|"$/g, "");
   // Result: 57557891-47e3-40fe-882a-9f2b520e34f3
 
   const cleanToken = decodeURIComponent(accessToken).replace(/^"|"$/g, "");
-  console.log("DeviceCode:", encodeURIComponent(cleanDeviceCode));
+  //console.log("DeviceCode:", encodeURIComponent(cleanDeviceCode));
   const wsUrl = `${socketUrl}?deviceCode=${encodeURIComponent(cleanDeviceCode)}&token=${encodeURIComponent(cleanToken)}`;
 
-  const { connected, isLoading } = useVoiceSession({
+  const { connected, isLoading, error } = useVoiceSession({
     wsUrl: wsUrl,
+    isSpeaking: isSpeaking,
   });
-  console.log("WebSocket connected:", connected);
+  //console.log("WebSocket connected:", connected);
   return (
     <ScreenPage>
       {/* <NeonRing isSpeaking={true} /> */}
