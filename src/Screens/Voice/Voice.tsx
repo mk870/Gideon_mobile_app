@@ -1,7 +1,7 @@
 import ScreenPage from "@/src/Components/ScreenWrapper/ScreenPage";
 import ScreenSpinner from "@/src/Components/Spinners/ScreenSpinner";
 import { useAppSelector } from "@/src/Redux/Hooks/Config";
-import { socketUrl } from "@/src/Utils/Constants";
+import { backEndUrl, socketUrl } from "@/src/Utils/Constants";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useVoiceSession } from "./Hooks/useVoiceSession";
@@ -18,12 +18,17 @@ const Voice = () => {
   // Result: 57557891-47e3-40fe-882a-9f2b520e34f3
 
   const cleanToken = decodeURIComponent(accessToken).replace(/^"|"$/g, "");
+  // console.log("Clean Device Code:", cleanDeviceCode);
+  // console.log("Clean Access Token:", cleanToken);
   //console.log("DeviceCode:", encodeURIComponent(cleanDeviceCode));
   const wsUrl = `${socketUrl}?deviceCode=${encodeURIComponent(cleanDeviceCode)}&token=${encodeURIComponent(cleanToken)}`;
 
   const { connected, isLoading, error } = useVoiceSession({
     wsUrl: wsUrl,
     isSpeaking: isSpeaking,
+    accessToken: cleanToken,
+    deviceCode: cleanDeviceCode,
+    uploadUrl: `${backEndUrl}/audio`,
   });
   //console.log("WebSocket connected:", connected);
   return (

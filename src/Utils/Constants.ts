@@ -23,5 +23,5 @@ export const tabsMenu = {
   home: "Home",
   settings: "Settings",
   chats: "Chats",
-  voice: "voice",
+  voice: "Voice",
 };

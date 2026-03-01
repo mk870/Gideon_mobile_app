@@ -1,18 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import {
+  RecordingPresets,
+  createAudioPlayer,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+  useAudioRecorder,
+} from "expo-audio";
+import { File, Paths } from "expo-file-system/next";
 import { useEffect, useRef, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import InCallManager from "react-native-incall-manager";
-import {
-  RTCIceCandidate,
-  RTCPeerConnection,
-  RTCSessionDescription,
-  mediaDevices,
-} from "react-native-webrtc";
-
-type SignalMsg =
-  | { type: "offer"; sdp: { type: string; sdp: string } }
-  | { type: "answer"; sdp: { type: string; sdp: string } }
-  | { type: "ice"; candidate: any };
 
 async function requestMicPermission(): Promise<boolean> {
   if (Platform.OS === "android") {
@@ -31,28 +28,186 @@ async function requestMicPermission(): Promise<boolean> {
 
 export function useVoiceSession(params: {
   wsUrl: string;
+  uploadUrl: string;
   isSpeaking: boolean;
+  accessToken: string;
+  deviceCode: string;
 }) {
-  const { wsUrl, isSpeaking } = params;
+  const { wsUrl, uploadUrl, isSpeaking, accessToken, deviceCode } = params;
 
   const wsRef = useRef<WebSocket | null>(null);
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const iceCandidateQueue = useRef<any[]>([]);
-
-  const micStreamRef = useRef<any>(null);
-  const micTrackRef = useRef<any>(null);
+  const audioQueueRef = useRef<Uint8Array[]>([]);
+  const isPlayingRef = useRef(false);
+  const isUploadingRef = useRef(false);
 
   const [connected, setConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Push-to-talk via track.enabled (simple + works well)
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+
   useEffect(() => {
-    const track = micTrackRef.current;
-    if (!track) return;
-    track.enabled = !!isSpeaking;
-    //console.log("Mic track enabled:", track.enabled);
+    if (isSpeaking) {
+      startRecording();
+    } else {
+      stopAndUpload();
+    }
   }, [isSpeaking]);
+
+  const startRecording = async () => {
+    try {
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+      console.log("Recording started");
+    } catch (err) {
+      console.error("startRecording failed:", err);
+    }
+  };
+
+  const stopAndUpload = async () => {
+    if (!recorder.isRecording || isUploadingRef.current) return;
+
+    try {
+      await recorder.stop();
+      const uri = recorder.uri;
+
+      if (!uri) {
+        console.log("No URI after stop");
+        return;
+      }
+
+      const file = new File(uri);
+      console.log("File exists:", file.exists, "File size: ", file.size);
+
+      if (!file.exists || file.size === 0) {
+        console.log("No audio recorded");
+        return;
+      }
+
+      isUploadingRef.current = true;
+
+      const extension = uri.split(".").pop()?.toLowerCase() ?? "m4a";
+      const mimeMap: Record<string, string> = {
+        wav: "audio/wav",
+        m4a: "audio/m4a",
+        mp4: "audio/mp4",
+        webm: "audio/webm",
+        ogg: "audio/ogg",
+      };
+      const mimeType = mimeMap[extension] ?? "audio/m4a";
+
+      const formData = new FormData();
+      formData.append("audio", {
+        uri,
+        name: `audio.${extension}`,
+        type: mimeType,
+      } as any);
+      formData.append("format", extension);
+      formData.append("deviceCode", deviceCode);
+
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+        body: formData,
+      });
+
+      if (!result.ok) {
+        const body = await result.text();
+        console.error("Upload failed:", result.status, body);
+      } else {
+        const body = await result.json();
+        if (body.status === "silent") {
+          console.log("Audio was silent, skipped STT");
+        } else {
+          console.log("Audio enqueued for STT");
+        }
+      }
+
+      file.delete();
+    } catch (err) {
+      console.error("stopAndUpload failed:", err);
+    } finally {
+      isUploadingRef.current = false;
+    }
+  };
+
+  const playAudioQueue = async () => {
+    if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
+    isPlayingRef.current = true;
+
+    while (audioQueueRef.current.length > 0) {
+      const opus = audioQueueRef.current.shift()!;
+      let tmpFile: File | null = null;
+      let player: ReturnType<typeof createAudioPlayer> | null = null;
+
+      try {
+        await setAudioModeAsync({
+          allowsRecording: false,
+          playsInSilentMode: true,
+        });
+
+        // Safe base64 conversion for large arrays
+        tmpFile = new File(Paths.cache, `audio_${Date.now()}.ogg`);
+        tmpFile.write(opus as any);
+
+        console.log("Wrote tmp file:", tmpFile.uri, "bytes:", opus.length);
+
+        player = createAudioPlayer({ uri: tmpFile.uri });
+
+        await new Promise<void>((resolve, reject) => {
+          if (!player) return resolve();
+
+          let hasStartedPlaying = false;
+
+          player.addListener("playbackStatusUpdate", (status: any) => {
+            if (status.isLoaded && !hasStartedPlaying) {
+              hasStartedPlaying = true;
+              player!.play();
+              return;
+            }
+
+            if (status.didJustFinish) {
+              resolve();
+              return;
+            }
+
+            if (
+              hasStartedPlaying &&
+              !status.isLoaded &&
+              status.playbackState === "idle"
+            ) {
+              resolve();
+              return;
+            }
+
+            if (status.error) {
+              reject(new Error(status.error));
+            }
+          });
+        });
+
+        console.log("Chunk finished playing");
+      } catch (err) {
+        console.error("playback error:", err);
+      } finally {
+        try {
+          player?.remove();
+        } catch {}
+        try {
+          tmpFile?.delete();
+        } catch {}
+      }
+    }
+
+    isPlayingRef.current = false;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -70,214 +225,38 @@ export function useVoiceSession(params: {
         return;
       }
 
-      // 1) WebSocket signaling
+      await requestRecordingPermissionsAsync();
+
+      InCallManager.start({ media: "audio" });
+      InCallManager.setForceSpeakerphoneOn(true);
+      InCallManager.setKeepScreenOn(true);
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
+      ws.binaryType = "arraybuffer";
 
-      // 2) PeerConnection
-      const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: "stun:stun.relay.metered.ca:80" },
-          {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "195892ae823813baf88a1d1d",
-            credential: "dHhck1hqJSTJjfCy",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "195892ae823813baf88a1d1d",
-            credential: "dHhck1hqJSTJjfCy",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "195892ae823813baf88a1d1d",
-            credential: "dHhck1hqJSTJjfCy",
-          },
-          {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "195892ae823813baf88a1d1d",
-            credential: "dHhck1hqJSTJjfCy",
-          },
-        ],
-        iceCandidatePoolSize: 10,
-      } as any);
-
-      pcRef.current = pc;
-      const pcAny = pc as any;
-
-      // ✅ IMPORTANT: explicitly request to RECEIVE audio from server
-      // This guarantees your offer includes an audio m-line with recv direction,
-      // so the server's audio track will show up in ontrack.
-      // try {
-      //   pcAny.addTransceiver("audio", { direction: "recvonly" });
-      // } catch (e) {
-      //   console.warn("addTransceiver(recvonly) failed:", e);
-      // }
-
-      pcAny.onicecandidate = (event: any) => {
-        if (event?.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: "ice", candidate: event.candidate }));
-        }
-      };
-
-      pcAny.onconnectionstatechange = () => {
+      ws.onopen = () => {
         if (!isMounted) return;
-        const state: string = pcAny.connectionState;
-        //console.log("PC connection state: ", state);
-
-        setConnected(state === "connected");
-
-        if (state === "connected") {
-          // ✅ start audio session + route to speaker
-          InCallManager.start({ media: "audio" });
-          InCallManager.setMicrophoneMute(false);
-          InCallManager.setForceSpeakerphoneOn(true);
-
-          // optional: keep screen on during call
-          InCallManager.setKeepScreenOn(true);
-        }
-
-        if (
-          state === "failed" ||
-          state === "disconnected" ||
-          state === "closed"
-        ) {
-          try {
-            InCallManager.stop();
-          } catch {}
-        }
-
-        if (
-          state === "connected" ||
-          state === "failed" ||
-          state === "disconnected" ||
-          state === "closed"
-        ) {
-          setIsLoading(false);
-        }
-
-        if (state === "failed") setError("WebRTC connection failed");
+        setConnected(true);
+        setIsLoading(false);
+        console.log("WebSocket connected");
       };
 
-      // ✅ This should fire once server audio is negotiated + starts sending
-      pcAny.ontrack = (event: any) => {
-        console.log("Remote track received, kind:", event?.track?.kind);
-        if (event?.track?.kind === "audio") {
-          const [remoteStream] = event.streams || [];
-          if (remoteStream) {
-            console.log("Remote stream id:", remoteStream.id);
-          } else {
-            console.log("Remote audio track received without stream");
-          }
-        }
-      };
-
-      // 3) Microphone
-      let micStream: any;
-      try {
-        micStream = await mediaDevices.getUserMedia({
-          audio: true,
-          video: false,
-        });
-      } catch (err) {
-        console.error("getUserMedia failed:", err);
-        if (isMounted) {
-          setError("Failed to access microphone");
-          setIsLoading(false);
-        }
-        ws.close();
-        pc.close();
-        return;
-      }
-
-      micStreamRef.current = micStream;
-
-      const [micTrack] = micStream.getAudioTracks();
-      if (!micTrack) {
-        if (isMounted) {
-          setError("No microphone audio track available");
-          setIsLoading(false);
-        }
-        ws.close();
-        pc.close();
-        return;
-      }
-
-      micTrackRef.current = micTrack;
-      micTrack.enabled = !!isSpeaking; // start according to button
-      //console.log("Mic track enabled:", micTrack.enabled);
-
-      // Send mic track
-      pc.addTrack(micTrack, micStream);
-
-      // 4) WS incoming
       ws.onmessage = async (ev) => {
-        let msg: SignalMsg;
-        try {
-          msg = JSON.parse(ev.data) as SignalMsg;
-        } catch {
-          console.warn("Failed to parse WS message:", ev.data);
+        if (ev.data instanceof ArrayBuffer) {
+          console.log("WS binary received bytes:", ev.data.byteLength);
+          audioQueueRef.current.push(new Uint8Array(ev.data));
+          playAudioQueue();
           return;
         }
 
-        if (msg.type === "answer") {
-          try {
-            await pc.setRemoteDescription(
-              new RTCSessionDescription({ type: "answer", sdp: msg.sdp.sdp }),
-            );
-            //console.log("Remote description set (answer)");
-
-            const queued = iceCandidateQueue.current.splice(0);
-            for (const candidate of queued) {
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
-              } catch (e) {
-                console.warn("Failed to add queued ICE:", e);
-              }
-            }
-          } catch (e) {
-            console.error("setRemoteDescription failed:", e);
-          }
-        }
-
-        if (msg.type === "ice" && msg.candidate) {
-          const pcAnyNow = pc as any;
-          if (pcAnyNow.remoteDescription) {
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
-            } catch (e) {
-              console.warn("addIceCandidate failed: ", e);
-            }
-          } else {
-            iceCandidateQueue.current.push(msg.candidate);
-          }
-        }
-      };
-
-      // 5) WS open -> create offer
-      ws.onopen = async () => {
-        //console.log("WebSocket opened");
-
         try {
-          // ✅ Force offer to include receiving audio as well (extra safety)
-          const offer = await (pc as any).createOffer({
-            offerToReceiveAudio: true,
-          });
-          await pc.setLocalDescription(offer);
-
-          const out: SignalMsg = {
-            type: "offer",
-            sdp: { type: offer.type, sdp: offer.sdp ?? "" },
-          };
-
-          ws.send(JSON.stringify(out));
-          console.log("Offer sent");
-        } catch (e) {
-          console.error("createOffer/setLocalDescription failed:", e);
-          if (isMounted) {
-            setError("Failed to create WebRTC offer");
-            setIsLoading(false);
+          const msg = JSON.parse(ev.data as string);
+          if (msg.type === "error") {
+            console.error("Server error:", msg.message);
           }
+        } catch (err) {
+          console.error("WS message parse error:", err);
         }
       };
 
@@ -289,16 +268,15 @@ export function useVoiceSession(params: {
         }
       };
 
-      ws.onclose = (e) => {
-        console.log("WebSocket closed:", e.code, e.reason);
+      ws.onclose = () => {
         if (!isMounted) return;
         setConnected(false);
         setIsLoading(false);
+        InCallManager.stop();
       };
     };
 
     start().catch((e) => {
-      console.error("useVoiceSession start() threw:", e);
       if (isMounted) {
         setError(String(e));
         setIsLoading(false);
@@ -307,30 +285,20 @@ export function useVoiceSession(params: {
 
     return () => {
       isMounted = false;
-      iceCandidateQueue.current = [];
-
       try {
-        const stream = micStreamRef.current;
-        if (stream) stream.getTracks().forEach((t: any) => t.stop());
+        if (recorder.isRecording) recorder.stop();
       } catch {}
-
       try {
         wsRef.current?.close();
       } catch {}
       try {
-        pcRef.current?.close();
-      } catch {}
-
-      try {
         InCallManager.stop();
       } catch {}
-
       wsRef.current = null;
-      pcRef.current = null;
-      micStreamRef.current = null;
-      micTrackRef.current = null;
+      audioQueueRef.current = [];
+      isPlayingRef.current = false;
     };
-  }, [wsUrl]); // IMPORTANT: do not depend on isSpeaking
+  }, [wsUrl]);
 
   return { connected, isLoading, error };
 }
