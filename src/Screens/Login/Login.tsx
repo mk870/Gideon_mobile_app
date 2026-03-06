@@ -111,7 +111,6 @@ const Login: INoPropsReactComponent = () => {
           expoSecureValueKeyNames.deviceCode,
           JSON.stringify(data.data.response.deviceCode),
         );
-        console.log("login success ", data.data.response);
         setUserData(data.data.response);
         dispatch(addDeviceCode(data.data.response.deviceCode));
         router.dismissAll();
