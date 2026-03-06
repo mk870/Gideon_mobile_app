@@ -12,7 +12,11 @@ import { INoPropsReactComponent } from "@/src/GlobalTypes/Types";
 import { IUser } from "@/src/GlobalTypes/User";
 import useUpdateUser from "@/src/Hooks/useUpdateUser";
 import { useAppDispatch, useAppSelector } from "@/src/Redux/Hooks/Config";
-import { addAccessToken, addDeviceCode } from "@/src/Redux/Slices/UserSlice";
+import {
+  addAccessToken,
+  addDeviceCode,
+  addWebSocketToken,
+} from "@/src/Redux/Slices/UserSlice";
 import { backEndUrl, expoSecureValueKeyNames } from "@/src/Utils/Constants";
 import { getSecureValue } from "@/src/Utils/Func";
 
@@ -31,12 +35,21 @@ const Index: INoPropsReactComponent = () => {
       expoSecureValueKeyNames.deviceCode,
     );
     if (deviceCodeValue) {
-      dispatch(addDeviceCode(deviceCodeValue));
+      dispatch(addDeviceCode(JSON.parse(deviceCodeValue)));
     } else {
       router.replace("/login");
     }
     if (accessTokenValue) {
       dispatch(addAccessToken(accessTokenValue));
+      const websocketToken = await axios.get(
+        `${backEndUrl}/websocket-token/generate`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(accessTokenValue)}`,
+          },
+        },
+      );
+      dispatch(addWebSocketToken(websocketToken.data.response));
       const decoded: JwtPayload = jwtDecode(accessTokenValue);
       const currentDate = new Date();
       if (decoded.exp) {

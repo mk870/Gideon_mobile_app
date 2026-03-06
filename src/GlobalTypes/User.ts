@@ -62,6 +62,7 @@ export type IUser = {
   contactNumber: string;
   accessToken: string;
   deviceCode: string;
+  webSocketToken: string;
   location: ILocationResponse | null;
 };
 
@@ -74,6 +75,7 @@ export type IUserLoginResponse = {
   height: string;
   contactNumber: string;
   accessToken: string;
+  webSocketToken: string;
   location: ILocationResponse;
   deviceCode: string;
 };

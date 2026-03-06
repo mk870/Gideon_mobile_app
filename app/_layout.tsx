@@ -6,6 +6,7 @@ import "react-native-reanimated";
 import { Provider } from "react-redux";
 
 import { BottomSheetsContextProvider } from "@/src/Context/BottomSheetsContext";
+import { VoiceContextProvider } from "@/src/Context/VoiceContext";
 import { store } from "@/src/Redux/Store";
 import { colorScheme } from "@/src/Theme/Colors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -33,25 +34,27 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <BottomSheetsContextProvider>
-        <QueryClientProvider client={queryClient}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: colorScheme.background,
-                },
-                headerStyle: {
-                  backgroundColor: colorScheme.background,
-                },
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            </Stack>
-          </GestureHandlerRootView>
-        </QueryClientProvider>
+        <VoiceContextProvider>
+          <QueryClientProvider client={queryClient}>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: {
+                    backgroundColor: colorScheme.background,
+                  },
+                  headerStyle: {
+                    backgroundColor: colorScheme.background,
+                  },
+                }}
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              </Stack>
+            </GestureHandlerRootView>
+          </QueryClientProvider>
+        </VoiceContextProvider>
       </BottomSheetsContextProvider>
     </Provider>
   );

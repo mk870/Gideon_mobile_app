@@ -26,13 +26,21 @@ async function requestMicPermission(): Promise<boolean> {
   return true;
 }
 
-export function useVoiceSession(params: {
-  wsUrl: string;
-  uploadUrl: string;
+type Params = {
+  wsUrl: string | null;
+  uploadUrl: string | null;
+
+  // This flag controls recording in your logic:
+  // true => start recording
+  // false => stop + upload
   isSpeaking: boolean;
-  accessToken: string;
-  deviceCode: string;
-}) {
+
+  // Use RAW token string (not JSON-stringified)
+  accessToken: string | null;
+  deviceCode: string | null;
+};
+
+export function useVoiceSession(params: Params) {
   const { wsUrl, uploadUrl, isSpeaking, accessToken, deviceCode } = params;
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -41,18 +49,30 @@ export function useVoiceSession(params: {
   const isUploadingRef = useRef(false);
 
   const [connected, setConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
+  // ---- helper: send json anywhere (exposed) ----
+  const sendJson = (msg: any) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return false;
+    ws.send(JSON.stringify(msg));
+    return true;
+  };
+
+  // ---- recording control driven by isSpeaking ----
   useEffect(() => {
+    // Only act if session is ready
+    if (!wsUrl || !uploadUrl || !accessToken || !deviceCode) return;
+
     if (isSpeaking) {
       startRecording();
     } else {
       stopAndUpload();
     }
-  }, [isSpeaking]);
+  }, [isSpeaking, wsUrl, uploadUrl, accessToken, deviceCode]);
 
   const startRecording = async () => {
     try {
@@ -62,7 +82,7 @@ export function useVoiceSession(params: {
       });
       await recorder.prepareToRecordAsync();
       recorder.record();
-      console.log("Recording started");
+      // console.log("Recording started");
     } catch (err) {
       console.error("startRecording failed:", err);
     }
@@ -70,23 +90,17 @@ export function useVoiceSession(params: {
 
   const stopAndUpload = async () => {
     if (!recorder.isRecording || isUploadingRef.current) return;
+    if (!uploadUrl || !accessToken || !deviceCode) return;
 
     try {
       await recorder.stop();
       const uri = recorder.uri;
 
-      if (!uri) {
-        console.log("No URI after stop");
-        return;
-      }
+      if (!uri) return;
 
       const file = new File(uri);
-      console.log("File exists:", file.exists, "File size: ", file.size);
 
-      if (!file.exists || file.size === 0) {
-        console.log("No audio recorded");
-        return;
-      }
+      if (!file.exists || file.size === 0) return;
 
       isUploadingRef.current = true;
 
@@ -153,11 +167,8 @@ export function useVoiceSession(params: {
           playsInSilentMode: true,
         });
 
-        // Safe base64 conversion for large arrays
         tmpFile = new File(Paths.cache, `audio_${Date.now()}.ogg`);
         tmpFile.write(opus as any);
-
-        console.log("Wrote tmp file:", tmpFile.uri, "bytes:", opus.length);
 
         player = createAudioPlayer({ uri: tmpFile.uri });
 
@@ -187,13 +198,9 @@ export function useVoiceSession(params: {
               return;
             }
 
-            if (status.error) {
-              reject(new Error(status.error));
-            }
+            if (status.error) reject(new Error(status.error));
           });
         });
-
-        console.log("Chunk finished playing");
       } catch (err) {
         console.error("playback error:", err);
       } finally {
@@ -209,10 +216,19 @@ export function useVoiceSession(params: {
     isPlayingRef.current = false;
   };
 
+  // ---- WS lifecycle (reconnect when wsUrl changes) ----
   useEffect(() => {
     let isMounted = true;
 
     const start = async () => {
+      // If not ready, do nothing
+      if (!wsUrl || !uploadUrl || !accessToken || !deviceCode) {
+        setConnected(false);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
 
@@ -237,14 +253,13 @@ export function useVoiceSession(params: {
 
       ws.onopen = () => {
         if (!isMounted) return;
+        console.log("WebSocket connected");
         setConnected(true);
         setIsLoading(false);
-        console.log("WebSocket connected");
       };
 
       ws.onmessage = async (ev) => {
         if (ev.data instanceof ArrayBuffer) {
-          console.log("WS binary received bytes:", ev.data.byteLength);
           audioQueueRef.current.push(new Uint8Array(ev.data));
           playAudioQueue();
           return;
@@ -285,6 +300,7 @@ export function useVoiceSession(params: {
 
     return () => {
       isMounted = false;
+
       try {
         if (recorder.isRecording) recorder.stop();
       } catch {}
@@ -294,11 +310,17 @@ export function useVoiceSession(params: {
       try {
         InCallManager.stop();
       } catch {}
+
       wsRef.current = null;
       audioQueueRef.current = [];
       isPlayingRef.current = false;
     };
   }, [wsUrl]);
 
-  return { connected, isLoading, error };
+  return {
+    connected,
+    isLoading,
+    error,
+    sendJson,
+  };
 }

@@ -11,6 +11,7 @@ import {
   addHeight,
   addLocation,
   addUserId,
+  addWebSocketToken,
   addWeight,
 } from "../Redux/Slices/UserSlice";
 
@@ -27,6 +28,7 @@ const useUpdateUser = (user: IUser | null) => {
       dispatch(addContactNumber(user.contactNumber));
       dispatch(addLocation(user.location));
       dispatch(addAccessToken(user.accessToken));
+      dispatch(addWebSocketToken(user.webSocketToken));
     }
   }, [user]);
 };

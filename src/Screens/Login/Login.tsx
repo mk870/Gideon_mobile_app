@@ -22,6 +22,8 @@ import { INoPropsReactComponent, IVoidFunc } from "@/src/GlobalTypes/Types";
 import { IUserLogin, IUserLoginResponse } from "@/src/GlobalTypes/User";
 import useUpdateUser from "@/src/Hooks/useUpdateUser";
 import { loginHttpFunc } from "@/src/HttpServices/Mutations/Auth/AuthHttpFuncs";
+import { useAppDispatch } from "@/src/Redux/Hooks/Config";
+import { addDeviceCode } from "@/src/Redux/Slices/UserSlice";
 import { gray, red } from "@/src/Theme/Colors";
 import {
   BUTTON_MAX_WIDTH,
@@ -91,6 +93,7 @@ const Login: INoPropsReactComponent = () => {
     useState<boolean>(false);
   const router = useRouter();
   useUpdateUser(userData);
+  const dispatch = useAppDispatch();
 
   const loginMutation = useMutation<
     AxiosResponse<{ response: IUserLoginResponse }>,
@@ -110,6 +113,7 @@ const Login: INoPropsReactComponent = () => {
         );
         console.log("login success ", data.data.response);
         setUserData(data.data.response);
+        dispatch(addDeviceCode(data.data.response.deviceCode));
         router.dismissAll();
         router.replace("/voice");
       } catch (error) {

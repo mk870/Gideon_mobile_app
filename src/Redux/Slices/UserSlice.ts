@@ -6,6 +6,7 @@ const user: IUser = {
   familyName: "",
   id: 0,
   accessToken: "",
+  webSocketToken: "",
   email: "",
   weight: "",
   height: "",
@@ -36,6 +37,12 @@ export const userSlice = createSlice({
       state.value = {
         ...state.value,
         id: action.payload,
+      };
+    },
+    addWebSocketToken: (state, action) => {
+      state.value = {
+        ...state.value,
+        webSocketToken: action.payload,
       };
     },
     addAccessToken: (state, action) => {
@@ -93,5 +100,6 @@ export const {
   addContactNumber,
   addLocation,
   addDeviceCode,
+  addWebSocketToken,
 } = userSlice.actions;
 export default userSlice.reducer;

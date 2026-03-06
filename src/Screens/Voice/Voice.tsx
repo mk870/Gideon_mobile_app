@@ -1,40 +1,17 @@
-import ScreenPage from "@/src/Components/ScreenWrapper/ScreenPage";
-import ScreenSpinner from "@/src/Components/Spinners/ScreenSpinner";
-import { useAppSelector } from "@/src/Redux/Hooks/Config";
-import { backEndUrl, socketUrl } from "@/src/Utils/Constants";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
-import { useVoiceSession } from "./Hooks/useVoiceSession";
+
+import ScreenPage from "@/src/Components/ScreenWrapper/ScreenPage";
+import ScreenSpinner from "@/src/Components/Spinners/ScreenSpinner";
+import { useVoiceContext } from "@/src/Context/VoiceContext";
 
 const BRIGHT_CYAN = "#00F7FF";
 const DEEP_BLUE = "#0066FF";
 
 const Voice = () => {
-  const { accessToken, deviceCode } = useAppSelector(
-    (state) => state.user.value,
-  );
-  const [isSpeaking, setIsSpeaking] = React.useState(false);
-  const cleanDeviceCode = decodeURIComponent(deviceCode).replace(/^"|"$/g, "");
-  // Result: 57557891-47e3-40fe-882a-9f2b520e34f3
-
-  const cleanToken = decodeURIComponent(accessToken).replace(/^"|"$/g, "");
-  // console.log("Clean Device Code:", cleanDeviceCode);
-  // console.log("Clean Access Token:", cleanToken);
-  //console.log("DeviceCode:", encodeURIComponent(cleanDeviceCode));
-  const wsUrl = `${socketUrl}?deviceCode=${encodeURIComponent(cleanDeviceCode)}&token=${encodeURIComponent(cleanToken)}`;
-
-  const { connected, isLoading, error } = useVoiceSession({
-    wsUrl: wsUrl,
-    isSpeaking: isSpeaking,
-    accessToken: cleanToken,
-    deviceCode: cleanDeviceCode,
-    uploadUrl: `${backEndUrl}/audio`,
-  });
-  //console.log("WebSocket connected:", connected);
+  const { isSpeaking, setIsSpeaking, isLoading } = useVoiceContext()!;
   return (
     <ScreenPage>
-      {/* <NeonRing isSpeaking={true} /> */}
-      {/* <WakeWordDetection/> */}
       {isLoading ? (
         <ScreenSpinner />
       ) : (
@@ -57,7 +34,7 @@ export default Voice;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#000814", // Very dark blue/black background defines the neon look
+    backgroundColor: "#000814",
     alignItems: "center",
     justifyContent: "space-evenly",
     paddingVertical: 50,
