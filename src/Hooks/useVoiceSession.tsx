@@ -6,6 +6,7 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from "expo-audio";
+import * as LegacyFS from "expo-file-system/legacy";
 import { File, Paths } from "expo-file-system/next";
 import { useEffect, useRef, useState } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
@@ -29,13 +30,7 @@ async function requestMicPermission(): Promise<boolean> {
 type Params = {
   wsUrl: string | null;
   uploadUrl: string | null;
-
-  // This flag controls recording in your logic:
-  // true => start recording
-  // false => stop + upload
   isSpeaking: boolean;
-
-  // Use RAW token string (not JSON-stringified)
   accessToken: string | null;
   deviceCode: string | null;
 };
@@ -54,7 +49,6 @@ export function useVoiceSession(params: Params) {
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
-  // ---- helper: send json anywhere (exposed) ----
   const sendJson = (msg: any) => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
@@ -62,11 +56,8 @@ export function useVoiceSession(params: Params) {
     return true;
   };
 
-  // ---- recording control driven by isSpeaking ----
   useEffect(() => {
-    // Only act if session is ready
     if (!wsUrl || !uploadUrl || !accessToken || !deviceCode) return;
-
     if (isSpeaking) {
       startRecording();
     } else {
@@ -82,7 +73,6 @@ export function useVoiceSession(params: Params) {
       });
       await recorder.prepareToRecordAsync();
       recorder.record();
-      // console.log("Recording started");
     } catch (err) {
       console.error("startRecording failed:", err);
     }
@@ -95,11 +85,9 @@ export function useVoiceSession(params: Params) {
     try {
       await recorder.stop();
       const uri = recorder.uri;
-
       if (!uri) return;
 
       const file = new File(uri);
-
       if (!file.exists || file.size === 0) return;
 
       isUploadingRef.current = true;
@@ -144,7 +132,7 @@ export function useVoiceSession(params: Params) {
         }
       }
 
-      file.delete();
+      new File(uri).delete();
     } catch (err) {
       console.error("stopAndUpload failed:", err);
     } finally {
@@ -158,7 +146,7 @@ export function useVoiceSession(params: Params) {
 
     while (audioQueueRef.current.length > 0) {
       const opus = audioQueueRef.current.shift()!;
-      let tmpFile: File | null = null;
+      let tmpPath: string | null = null;
       let player: ReturnType<typeof createAudioPlayer> | null = null;
 
       try {
@@ -167,10 +155,19 @@ export function useVoiceSession(params: Params) {
           playsInSilentMode: true,
         });
 
-        tmpFile = new File(Paths.cache, `audio_${Date.now()}.ogg`);
-        tmpFile.write(opus as any);
+        // Write as base64 — FileSystem.writeAsStringAsync with base64 encoding
+        // correctly writes raw binary bytes to disk. Using expo-file-system/next
+        // File.write() with a Uint8Array coerces it to "0,255,79,..." causing static.
+        // LegacyFS.writeAsStringAsync with base64 is the only reliable way
+        // to write raw binary bytes to disk in React Native / Expo
+        const tmpPath_ = `${Paths.cache.uri}audio_${Date.now()}.ogg`;
+        tmpPath = tmpPath_;
+        const base64 = btoa(String.fromCharCode(...opus));
+        await LegacyFS.writeAsStringAsync(tmpPath_, base64, {
+          encoding: "base64",
+        });
 
-        player = createAudioPlayer({ uri: tmpFile.uri });
+        player = createAudioPlayer({ uri: tmpPath });
 
         await new Promise<void>((resolve, reject) => {
           if (!player) return resolve();
@@ -183,12 +180,10 @@ export function useVoiceSession(params: Params) {
               player!.play();
               return;
             }
-
             if (status.didJustFinish) {
               resolve();
               return;
             }
-
             if (
               hasStartedPlaying &&
               !status.isLoaded &&
@@ -197,7 +192,6 @@ export function useVoiceSession(params: Params) {
               resolve();
               return;
             }
-
             if (status.error) reject(new Error(status.error));
           });
         });
@@ -208,7 +202,7 @@ export function useVoiceSession(params: Params) {
           player?.remove();
         } catch {}
         try {
-          tmpFile?.delete();
+          if (tmpPath) new File(tmpPath).delete();
         } catch {}
       }
     }
@@ -216,12 +210,10 @@ export function useVoiceSession(params: Params) {
     isPlayingRef.current = false;
   };
 
-  // ---- WS lifecycle (reconnect when wsUrl changes) ----
   useEffect(() => {
     let isMounted = true;
 
     const start = async () => {
-      // If not ready, do nothing
       if (!wsUrl || !uploadUrl || !accessToken || !deviceCode) {
         setConnected(false);
         setIsLoading(false);
@@ -300,7 +292,6 @@ export function useVoiceSession(params: Params) {
 
     return () => {
       isMounted = false;
-
       try {
         if (recorder.isRecording) recorder.stop();
       } catch {}

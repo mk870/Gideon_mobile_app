@@ -10,8 +10,8 @@ export const expoSecureValueKeyNames = {
   deviceCode: "deviceCode",
 };
 
-export const backEndUrl = "";
-export const socketUrl = "";
+export const backEndUrl = "http://10.44.134.3:8080";
+export const socketUrl = "ws://10.44.134.3:8080/ws";
 
 export const managerAccountUpdateMsg =
   "Remember, if you update your information, all your properties will also be updated, so make sure it is accurate.";
